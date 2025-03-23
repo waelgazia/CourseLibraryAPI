@@ -1,12 +1,14 @@
-﻿
+﻿using Microsoft.AspNetCore.Mvc;
+
 using AutoMapper;
+
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
-using Microsoft.AspNetCore.Mvc;
 
 namespace CourseLibrary.API.Controllers;
 
-[ApiController] 
+[ApiController]
+[Route("api/[controller]")]
 public class AuthorsController : ControllerBase
 {
     private readonly ICourseLibraryRepository _courseLibraryRepository;
@@ -22,7 +24,8 @@ public class AuthorsController : ControllerBase
             throw new ArgumentNullException(nameof(mapper));
     }
 
-    [HttpPost("api/author")] 
+    [HttpGet]
+    [HttpHead]
     public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors()
     { 
         // get authors from repo
@@ -33,7 +36,7 @@ public class AuthorsController : ControllerBase
         return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
     }
 
-    [HttpGet("api/getauthor/{authorId}", Name = "GetAuthor")]
+    [HttpGet("{authorId}", Name = "GetAuthor")]
     public async Task<ActionResult<AuthorDto>> GetAuthor(Guid authorId)
     {
         // get author from repo
@@ -48,8 +51,8 @@ public class AuthorsController : ControllerBase
         return Ok(_mapper.Map<AuthorDto>(authorFromRepo));
     }
 
-    [HttpPost("api/authors")]
-    public async Task<ActionResult<AuthorDto>> CreateAuthor(AuthorDto author)
+    [HttpPost]
+    public async Task<ActionResult<AuthorDto>> CreateAuthor(AuthorForCreationDto author)
     {
         var authorEntity = _mapper.Map<Entities.Author>(author);
 
@@ -61,5 +64,12 @@ public class AuthorsController : ControllerBase
         return CreatedAtRoute("GetAuthor",
             new { authorId = authorToReturn.Id },
             authorToReturn);
+    }
+
+    [HttpOptions]
+    public IActionResult GetAuthorOptions()
+    {
+        Response.Headers.Append("Allow", "GET,POST,POST,OPTIONS");
+        return Ok();
     }
 }
