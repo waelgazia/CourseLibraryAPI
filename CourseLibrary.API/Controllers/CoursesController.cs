@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 using AutoMapper;
 
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
-using Microsoft.AspNetCore.JsonPatch;
 
 namespace CourseLibrary.API.Controllers;
 
@@ -120,13 +123,13 @@ public class CoursesController : ControllerBase
 
         var courseToUpdate = _mapper.Map<CourseForUpdateDto>(courseForAuthorFromRepo);
         patchDocument.ApplyTo(courseToUpdate, ModelState);
-        if (!ModelState.IsValid || !TryValidateModel(courseToUpdate))
+        if (!TryValidateModel(courseToUpdate))
         {
-            return BadRequest(ModelState);
+            return ValidationProblem(ModelState);
         }
 
         _mapper.Map(courseToUpdate, courseForAuthorFromRepo);
-        await _courseLibraryRepository.SaveAsync();
+        await _courseLibraryRepository.SaveAsync(); 
 
         return NoContent();
     }
@@ -150,5 +153,15 @@ public class CoursesController : ControllerBase
         await _courseLibraryRepository.SaveAsync();
 
         return NoContent();
+    }
+
+    public override ActionResult ValidationProblem(
+    [ActionResultObjectValue] ModelStateDictionary modelStateDictionary)
+    {
+        var options = HttpContext.RequestServices
+            .GetRequiredService<IOptions<ApiBehaviorOptions>>();
+
+        return (ActionResult)options.Value
+            .InvalidModelStateResponseFactory(ControllerContext);
     }
 }

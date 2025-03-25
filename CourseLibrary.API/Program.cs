@@ -1,4 +1,4 @@
-using CourseLibrary.API;
+using CourseLibrary.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
   

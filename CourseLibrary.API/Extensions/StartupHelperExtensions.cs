@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+
 using CourseLibrary.API.Services;
 using CourseLibrary.API.DbContexts;
 
-namespace CourseLibrary.API;
+namespace CourseLibrary.API.Extensions;
 
 internal static class StartupHelperExtensions
 {
@@ -16,12 +19,39 @@ internal static class StartupHelperExtensions
                 configure.ReturnHttpNotAcceptable = true;
             })
             .AddNewtonsoftJson()
-            .AddXmlDataContractSerializerFormatters();
+            .AddXmlDataContractSerializerFormatters()
+            .ConfigureApiBehaviorOptions(setupAction =>
+            {
+                setupAction.InvalidModelStateResponseFactory = context =>
+                {
+                    var problemDetailsFactory = context.HttpContext.RequestServices
+                        .GetRequiredService<ProblemDetailsFactory>();
+
+                    var validationProblemDetails = problemDetailsFactory
+                        .CreateValidationProblemDetails(context.HttpContext, context.ModelState);
+
+                    // add additional info not added by default
+                    validationProblemDetails.Title = "One or more validation errors occurred.";
+                    validationProblemDetails.Detail = "See the errors field for details.";
+                    validationProblemDetails.Instance = context.HttpContext.Request.Path;
+
+                    // report invalid model state responses as validation issues
+                    validationProblemDetails.Type = "https://courselibrary.com/modelvalidationproblem";
+                    validationProblemDetails.Status = StatusCodes.Status422UnprocessableEntity;
+
+                    return new UnprocessableEntityObjectResult(validationProblemDetails)
+                    {
+                        ContentTypes = { "application/problem+json" }
+                    };
+                };
+            });
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.AddScoped<ICourseLibraryRepository,CourseLibraryRepository>();
+        builder.Services.AddTransient<IPropertyMappingService, PropertyMappingService>();
+
+        builder.Services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
 
         builder.Services.AddDbContext<CourseLibraryContext>(options =>
         {
