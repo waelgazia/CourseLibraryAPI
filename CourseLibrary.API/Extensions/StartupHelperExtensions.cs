@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 using CourseLibrary.API.Services;
+using CourseLibrary.API.Profiles;
 using CourseLibrary.API.DbContexts;
 
 namespace CourseLibrary.API.Extensions;
@@ -58,8 +59,7 @@ internal static class StartupHelperExtensions
             options.UseSqlite(@"Data Source=library.db");
         });
 
-        builder.Services.AddAutoMapper(
-            AppDomain.CurrentDomain.GetAssemblies());
+        builder.Services.AddAutoMapper(typeof(MappingProfile));
 
         return builder.Build();
     }

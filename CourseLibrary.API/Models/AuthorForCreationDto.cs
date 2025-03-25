@@ -1,6 +1,9 @@
-﻿namespace CourseLibrary.API.Models
+﻿using CourseLibrary.API.Entities;
+using CourseLibrary.API.Profiles;
+
+namespace CourseLibrary.API.Models
 {
-    public class AuthorForCreationDto
+    public class AuthorForCreationDto : IMapFrom<Author>
     {
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;

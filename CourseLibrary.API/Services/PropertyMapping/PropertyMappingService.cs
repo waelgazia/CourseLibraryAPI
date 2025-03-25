@@ -23,10 +23,10 @@ namespace CourseLibrary.API.Services
         private readonly Dictionary<string, PropertyMappingValue> _authorPropertyMapping
            = new(StringComparer.OrdinalIgnoreCase)
            {
-               { "Id", new (new[] { "Id" }) },
-               { "MainCategory", new (new[] { "MainCategory" }) },
-               { "Age", new (new[] { "DateOfBirth" }, true) },
-               { "Name", new (new[] { "FirstName", "LastName" }) }
+               { nameof(AuthorDto.Id), new ([nameof(Author.Id)]) },
+               { nameof(AuthorDto.MainCategory), new ([nameof(Author.MainCategory)]) },
+               { nameof(AuthorDto.Age), new ([nameof(Author.DateOfBirth)], true) },
+               { nameof(AuthorDto.Name), new ([nameof(Author.FirstName), nameof(Author.LastName)]) }
            };
 
         public PropertyMappingService()
